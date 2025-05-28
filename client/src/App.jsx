@@ -9,7 +9,7 @@ export default function App() {
 
   const runCode = async () => {
     try {
-      const res = await axios.post("http://localhost:5000/run", { code, input });
+      const res = await axios.post("https://code-editor-terminal.onrender.com/run", { code, input });
       setOutput(res.data.output);
     } catch (err) {
       setOutput("Error: " + err.message);
