@@ -2,18 +2,24 @@ import React, { useState } from "react";
 import CodeEditor from "./components/CodeEditor";
 import axios from "axios";
 
+const BACKEND_URL = "https://code-editor-terminal.onrender.com";
+
 export default function App() {
   const [code, setCode] = useState(`name = input("Enter your name: ")\nprint("Hello", name)`);
   const [input, setInput] = useState("Ali");
   const [output, setOutput] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const runCode = async () => {
+    setLoading(true);
+    setOutput("Running...");
     try {
-      const res = await axios.post("https://code-editor-terminal.onrender.com/run", { code, input });
+      const res = await axios.post(`${BACKEND_URL}/run`, { code, input });
       setOutput(res.data.output);
     } catch (err) {
       setOutput("Error: " + err.message);
     }
+    setLoading(false);
   };
 
   return (
@@ -35,14 +41,17 @@ export default function App() {
 
       <button
         onClick={runCode}
-        className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded"
+        disabled={loading}
+        className={`mt-4 px-6 py-2 rounded ${loading ? "bg-gray-600" : "bg-blue-600 hover:bg-blue-700"}`}
       >
-        Run Code
+        {loading ? "Running..." : "Run Code"}
       </button>
 
       <div className="mt-6">
         <h2 className="text-xl font-semibold">Output:</h2>
-        <pre className="bg-black p-4 mt-2 rounded text-green-400 whitespace-pre-wrap">{output}</pre>
+        <pre className="bg-black p-4 mt-2 rounded text-green-400 whitespace-pre-wrap">
+          {output}
+        </pre>
       </div>
     </div>
   );

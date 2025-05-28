@@ -24,13 +24,12 @@ app.post('/run', (req, res) => {
         writeFileSync(codePath, code);
         if (input) writeFileSync(inputPath, input);
 
-        const baseCmd = `docker run --rm -v "${process.cwd().replace(/\\/g, "/")}:/app" python:3.11-slim`;
+        // Run python directly (no nested docker command)
+        const cmd = input
+            ? `python ${codePath} < ${inputPath}`
+            : `python ${codePath}`;
 
-        const dockerCmd = input
-            ? `${baseCmd} sh -c "python /app/${codeFile} < /app/${inputFile}"`
-            : `${baseCmd} python /app/${codeFile}`;
-
-        exec(dockerCmd, (err, stdout, stderr) => {
+        exec(cmd, (err, stdout, stderr) => {
             try {
                 unlinkSync(codePath);
                 if (input) unlinkSync(inputPath);
