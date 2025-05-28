@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
@@ -17,6 +17,8 @@ app.post('/run', (req, res) => {
     const codeId = uuidv4();
     const codeFile = `code-${codeId}.py`;
     const inputFile = `input-${codeId}.txt`;
+
+    // Relative paths inside container
     const codePath = path.join(process.cwd(), codeFile);
     const inputPath = path.join(process.cwd(), inputFile);
 
@@ -24,17 +26,18 @@ app.post('/run', (req, res) => {
         writeFileSync(codePath, code);
         if (input) writeFileSync(inputPath, input);
 
-        // Run python directly (no nested docker command)
+        // Run python code inside container (python3 command)
         const cmd = input
-            ? `python ${codePath} < ${inputPath}`
-            : `python ${codePath}`;
+            ? `python3 ${codeFile} < ${inputFile}`
+            : `python3 ${codeFile}`;
 
-        exec(cmd, (err, stdout, stderr) => {
+        exec(cmd, { cwd: process.cwd() }, (err, stdout, stderr) => {
+            // Cleanup temp files
             try {
                 unlinkSync(codePath);
                 if (input) unlinkSync(inputPath);
             } catch (cleanupErr) {
-                console.error("Cleanup Error:", cleanupErr);
+                console.error("Cleanup error:", cleanupErr);
             }
 
             if (err) {
